@@ -1,0 +1,118 @@
+spring:
+  profiles:
+    active: local
+  application:
+    name: anvesha-core
+
+  # ── JPA / Hibernate ──────────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Flyway owns the schema; Hibernate only validates
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # ── Flyway ───────────────────────────────────────────────────────────────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  # ── Mail (stub — replace host/port/credentials for production) ───────────────
+  mail:
+    host: smtp.example.com
+    port: 587
+    username: no-reply@anvesha.com
+    password: CHANGE_ME
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # ── Multipart upload limits ───────────────────────────────────────────────────
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 52MB
+
+# ── Server ───────────────────────────────────────────────────────────────────
+server:
+  port: 8081
+
+# ── Anvesha custom properties ────────────────────────────────────────────────
+anvesha:
+  python-service:
+    url: http://localhost:8001
+  jwt:
+    secret: anvesha-super-secret-key-must-be-at-least-256-bits-long-change-in-prod
+    expiration-ms: 86400000   # 24 hours
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173,http://localhost:6969
+  section31:
+    qualifies-by-default: false   # conservative — TTO must confirm real eligibility
+
+# ── Async thread pool ─────────────────────────────────────────────────────────
+async:
+  core-pool-size: 4
+  max-pool-size: 8
+  queue-capacity: 100
+
+# ── Scheduler ─────────────────────────────────────────────────────────────────
+scheduler:
+  deadline-check:
+    cron: "0 0 2 * * *"    # 02:00 daily
+
+# ── Springdoc / Swagger ───────────────────────────────────────────────────────
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+# ── Actuator ──────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+---
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Profile: local  (active by default in development)                      ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5433/Sanjeevani
+    username: postgres
+    password: Bankai
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+
+---
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Profile: docker  (used inside docker-compose)                           ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5433/Sanjeevani
+    username: postgres
+    password: Bankai
+    driver-class-name: org.postgresql.Driver
+
+anvesha:
+  python-service:
+    url: http://anvesha-chem:8001
+  cors:
+    allowed-origins: http://localhost:3000
