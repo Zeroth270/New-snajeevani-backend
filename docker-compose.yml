@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: anvesha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: anvesha_db
+      POSTGRES_USER: anvesha
+      POSTGRES_PASSWORD: anvesha_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anvesha -d anvesha_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Python Chemistry Microservice ─────────────────────────────────────────
+  anvesha-chem:
+    build:
+      context: ./anvesha-chem
+      dockerfile: Dockerfile
+    container_name: anvesha-chem
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      NOVELTY_THRESHOLD: "0.7"
+      PUBCHEM_ENABLED: "true"
+      CHEMBL_ENABLED: "true"
+      SURECHEMBL_ENABLED: "false"
+      OFFLINE_MODE: "false"   # Set to "true" for offline demo
+      HTTP_TIMEOUT: "10.0"
+      HTTP_MAX_RETRIES: "3"
+      LOG_LEVEL: "INFO"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Spring Boot Backend ────────────────────────────────────────────────────
+  anvesha-core:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: anvesha-core
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/anvesha_db
+      SPRING_DATASOURCE_USERNAME: anvesha
+      SPRING_DATASOURCE_PASSWORD: anvesha_pass
+      ANVESHA_PYTHON_SERVICE_URL: http://anvesha-chem:8001
+      ANVESHA_JWT_SECRET: anvesha-super-secret-key-must-be-at-least-256-bits-long-change-in-prod
+      ANVESHA_JWT_EXPIRATION_MS: "86400000"
+      ANVESHA_CORS_ALLOWED_ORIGINS: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      anvesha-chem:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
