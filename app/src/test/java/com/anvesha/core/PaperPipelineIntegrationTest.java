@@ -1,7 +1,6 @@
 package com.anvesha.core;
 
 import com.anvesha.core.dto.auth.AuthResponse;
-import com.anvesha.core.dto.auth.LoginRequest;
 import com.anvesha.core.dto.auth.RegisterRequest;
 import com.anvesha.core.entity.Institution;
 import com.anvesha.core.repository.InstitutionRepository;

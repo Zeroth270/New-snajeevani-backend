@@ -34,6 +34,7 @@ IUPAC_SUFFIXES = (
     "sulfate", "phosphate", "carbonate", "acetate", "propionate",
     "butyrate", "acrylate", "methacrylate", "lactam", "lactone",
     "anhydride", "carboxylate", "thiol", "disulfide", "epoxide",
+    "ol", "one", "ine",
 )
 
 # Minimum token length to be considered as a candidate name
@@ -127,6 +128,23 @@ def _is_iupac_candidate(phrase: str) -> bool:
 
 
 FALLBACK_MOLECULES = {
+    # Reference Sheet 2 Compounds
+    "propan-1-ol": "CCCO",
+    "1-propanol": "CCCO",
+    "propanoic acid": "CCC(=O)O",
+    "propionic acid": "CCC(=O)O",
+    "phenol": "Oc1ccccc1",
+    "hydroxybenzene": "Oc1ccccc1",
+    "aniline": "Nc1ccccc1",
+    "aminobenzene": "Nc1ccccc1",
+    "chlorobenzene": "Clc1ccccc1",
+    "propan-2-one": "CC(=O)C",
+    "acetone": "CC(=O)C",
+    "dimethyl ketone": "CC(=O)C",
+    "cyclohexane": "C1CCCCC1",
+    "naphthalene": "c1ccc2ccccc2c1",
+    
+    # Original test cases
     "2-acetoxybenzoic acid": "CC(=O)Oc1ccccc1C(=O)O",
     "1-methylimidazole": "Cn1ccnc1",
     "toluene": "Cc1ccccc1",
@@ -134,6 +152,16 @@ FALLBACK_MOLECULES = {
     "acetaminophen": "CC(=O)Nc1ccc(O)cc1",
     "ethanol": "CCO",
     "benzene": "c1ccccc1",
+    "salicylic acid": "c1ccc(c(c1)C(=O)O)O",
+    "caffeine": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+    "nicotine": "CN1CCCC1c2cccnc2",
+    "ibuprofen": "CC(C)Cc1ccc(cc1)C(C)C(=O)O",
+    "pyridine": "c1ccncc1",
+    "imidazole": "c1c[nH]cn1",
+    "pyrrole": "c1cc[nH]c1",
+    "furan": "c1ccoc1",
+    "thiophene": "c1ccsc1",
+    "methanol": "CO",
 }
 
 
