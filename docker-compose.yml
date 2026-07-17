@@ -50,6 +50,7 @@ services:
       HTTP_TIMEOUT: "10.0"
       HTTP_MAX_RETRIES: "3"
       LOG_LEVEL: "INFO"
+      RAG_SERVICE_URL: http://rag-service:8000
 
     depends_on:
       postgres:
@@ -96,6 +97,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: anvesha_pass
 
       ANVESHA_PYTHON_SERVICE_URL: http://anvesha-chem:8001
+      ANVESHA_RAG_SERVICE_URL: http://rag-service:8000
 
       ANVESHA_JWT_SECRET: anvesha-super-secret-key-must-be-at-least-256-bits-long-change-in-prod
       ANVESHA_JWT_EXPIRATION_MS: "86400000"
@@ -115,8 +117,60 @@ services:
     networks:
       - anvesha-network
 
+  # ── Qdrant Vector Database ──────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: sanjeevani_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:6333/readyz || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - anvesha-network
+
+  # ── RAG Service ──────────────────────────────────────────────────────────────
+  rag-service:
+    build:
+      context: ./RAG/Sanjeevani-RAG-
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: sanjeevani_rag
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./RAG/Sanjeevani-RAG-/.env
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - UPLOAD_DIR=/tmp/rag_uploads
+    volumes:
+      - upload_tmp:/tmp/rag_uploads
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - anvesha-network
+
 volumes:
   postgres_data:
+  qdrant_storage:
+  upload_tmp:
 
 networks:
   anvesha-network:

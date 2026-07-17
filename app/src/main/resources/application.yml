@@ -48,6 +48,8 @@ server:
 anvesha:
   python-service:
     url: http://localhost:8001
+  rag-service:
+    url: ${ANVESHA_RAG_SERVICE_URL:http://localhost:8000}
   jwt:
     secret: anvesha-super-secret-key-must-be-at-least-256-bits-long-change-in-prod
     expiration-ms: 86400000   # 24 hours

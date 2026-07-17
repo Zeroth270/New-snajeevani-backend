@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # Offline demo mode — skips all external API calls
     offline_mode: bool = False
 
+    # RAG service integration URL
+    rag_service_url: str = "http://localhost:8000"
+
     # HTTP client
     http_timeout: float = 10.0
     http_max_retries: int = 3

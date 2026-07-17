@@ -21,6 +21,7 @@ from app.clients.chembl_client import ChemblClient
 from app.clients.offline_client import OfflineClient
 from app.clients.pubchem_client import PubChemClient
 from app.clients.surechembl_client import SureChemblClient
+from app.clients.rag_client import RagClient
 from app.config import get_settings
 from app.models.novelty import NoveltyResponse
 
@@ -42,11 +43,14 @@ except ImportError:
 
 def _build_clients() -> list[ChemDatabaseClient]:
     """Return the list of enabled database clients based on settings."""
-    if settings.offline_mode:
-        logger.info("OFFLINE_MODE enabled — using only offline dataset")
-        return [OfflineClient()]
+    # Always include local RAG document database check first to search institutional repository
+    clients: list[ChemDatabaseClient] = [RagClient()]
 
-    clients: list[ChemDatabaseClient] = []
+    if settings.offline_mode:
+        logger.info("OFFLINE_MODE enabled — using local RAG + offline dataset")
+        clients.append(OfflineClient())
+        return clients
+
     if settings.pubchem_enabled:
         clients.append(PubChemClient())
     if settings.chembl_enabled:

@@ -1,6 +1,7 @@
 package com.anvesha.core.service;
 
 import com.anvesha.core.client.PythonChemServiceClient;
+import com.anvesha.core.client.RagServiceClient;
 import com.anvesha.core.dto.paper.PaperDetailResponse;
 import com.anvesha.core.dto.paper.PaperResponse;
 import com.anvesha.core.dto.paper.PaperUploadRequest;
@@ -34,6 +35,7 @@ public class PaperService {
     private final NoveltyScanRepository noveltyScanRepository;
     private final PythonChemServiceClient chemClient;
     private final MoleculeService moleculeService;
+    private final RagServiceClient ragServiceClient;
 
     // ─── Upload ─────────────────────────────────────────────────────────────
 
@@ -171,6 +173,9 @@ public class PaperService {
                     }
                 }
             }
+
+            // Index the paper's text in the RAG service for future novelty checks
+            ragServiceClient.indexPaper(text, paper.getTitle());
 
             paper.setStatus("PROCESSED");
             paperRepository.save(paper);
